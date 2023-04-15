@@ -9,17 +9,20 @@ if(isset($_POST['button'])){
 if(empty($username) || empty($password)) {
    $errors = "invalid inputs!"; 
 }else {
-    $query = mysqli_query($conn,"SELECT username,password FROM register_db WHERE username = '$username';"); 
+    $query = mysqli_query($conn,"SELECT username,password FROM register_test WHERE username = '$username';"); 
     $data = mysqli_fetch_assoc($query);
 
     if(is_null($data["username"])){
         $errors = "Username does not exist";
     }else{
         if(password_verify($password, $data["password"])){
-            echo "Welcome $username!";
+            //echo "Welcome $username!";
+            session_start();
+            $_SESSION['username']=$username;
+            header("Location: forum.php");
         }
         else{
-            $errors = "Password desn't exist";
+            $errors = "Password doesn't exist";
         }
     }
   }
@@ -45,6 +48,7 @@ if(empty($username) || empty($password)) {
         <input type="text" name="username" placeholder="Enter Username"><br><br>
         <input type="password" name="password" placeholder="Enter password"><br><br>
         <input type="submit" name="button">
-    </form>
+    </form><br>
+    <a href="register.php">register</a>
 </body>
 </html>

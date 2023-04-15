@@ -1,48 +1,52 @@
 
 <?php
- if($_SERVER["REQUEST_METHOD"] == "POST"){
+    
+
     $conn = mysqli_connect("localhost","root","secret","forum_db");
     if(isset($_POST['submit'])){
 
-        $errors = "";
+        
       $username = htmlspecialchars($_POST['username']);
       $email = htmlspecialchars($_POST['email']);
       $password = htmlspecialchars($_POST['password']);
 
-  if(empty($username) or empty($email) or empty($password) or !filter_var($email, 
-    FILTER_VALIDATE_EMAIL)){
-    $errors = "Invalid Input";
-   }else{
-    $query=mysqli_query($conn,"SELECT  username FROM register_db WHERE 
-    username='$username';");
-    $query1=mysqli_query($conn,"SELECT email FROM register_db WHERE 
-    email='$email';");
-    $data = mysqli_fetch_assoc($query);
-    $data1 = mysqli_fetch_assoc($query1);
+      $errors = array();
 
-    if(!is_null($data['username'])){
-         $errors = "Username already exist!";
-    }elseif(!is_null($data1['email'])){
-        $errors = "E-mail already exist";
-    }else{
-     $pass = password_hash($password, PASSWORD_DEFAULT);
-     //$hash = password_hash($password,PASSWORD_DEFAULT); 
-    $query = mysqli_query($conn, "INSERT INTO register_db (username, email, password)
-    VALUES('$username','$email','$pass');"); 
+      $user = "SELECT username FROM register_test WHERE username='$username'";
+      $uresult = mysqli_query($conn, $user);
 
-    if($query){
-        //echo "User created!";
-        echo "<script>alert('User created')</script>";
-    }else{
-        echo "its not working";
-         }
+      $ema = "SELECT email FROM register_test WHERE email='$email'";
+      $eresult = mysqli_query($conn, $ema);
 
-       }   
+      if(empty($username)){
+          $errors['u'] = "Username required";
+      }else if(mysqli_num_rows($uresult) > 0){
+        $errors['u'] = "Username already exist";
+      }
+
+      if(empty($email)){
+        $errors['e'] = "Email required";
+    }else if(mysqli_num_rows($eresult) > 0){
+        $errors['e'] = "E-mail already exist";
     }
 
+    if(empty($password)){
+        $errors['p'] = "password required";
     }
-      
- }
+
+    if(count($errors) == 0){
+        $password = password_hash($password, PASSWORD_DEFAULT);
+        $sql = "INSERT INTO register_test (username, email, password)
+                 VALUES('$username','$email','$password')";
+        $result = mysqli_query($conn, $sql);
+        if($result){
+            echo "<script>alert('User created')</script>";
+        }else{
+            echo "<script>alert('failed')</script>";
+        }
+    }
+    }
+
  ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -54,14 +58,23 @@
 </head>
 <body>
     <h1>Register Here</h1>
-    <p style="color:red"><?php if(isset($_POST['submit'])) echo $errors; ?></p>
     <form action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>" method="post">
-        <input type="text" name="username" placeholder="Username" autocomplete="off"><br>
+        <div>
+            <input type="text" name="username" placeholder="Username" autocomplete="off"><br>
+            <p style="color:red"><?php if(isset($errors['u'])) echo $errors['u']; ?></p>
+        </div>
+        <div>
         <input type="email" name="email" placeholder="Email" autocomplete="off"> <br>
+        <p style="color:red"><?php if(isset($errors['e'])) echo $errors['e']; ?></p>
+        </div>
+        <div>
         <input type="password" name="password" placeholder="Password" autocomplete="off"> <br />
+        <p style="color:red"><?php if(isset($errors['p'])) echo $errors['p']; ?></p>
         <br />
+        </div>
         <input type="submit" name="submit">
-    </form>
+    </form><br>
+    <a href="login.php">Login</a>
 </body>
 </html>
    
